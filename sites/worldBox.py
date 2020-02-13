@@ -54,12 +54,8 @@ class worldBox:
                 for link_of_product in product:
                     href = link_of_product.get('href')
 
-                list_of_img = div.find_all('img')
                 price = div.find('span', attrs={'class': 'price-tag'}).text
                 title = div.find('p').text
-
-                for first_pic in list_of_img:
-                    img = first_pic.get('data-echo')
 
                 second_request = session.get(href, headers=headers)
 
@@ -67,10 +63,13 @@ class worldBox:
                     second_soup = bs(second_request.content, 'html.parser')
                     li = second_soup.find_all('span', attrs={'class': 'size_box'})
 
+                    span_for_product.clear()
                     for size_span in li:
                         for span in size_span:
                             span_for_product.append(span)
 
-                answer = "Worldbox \nNew \n{0} \n{1} \n{2}\n{3}".format(title, img, span_for_product, price)
+                answer = "Worldbox \nNew \n{0} \n{1} \nРазмеры EU: {2}\n{3}".format(href, title,
+                                                                                    ', '.join(span_for_product),
+                                                                                    price)
 
                 bot.send_message(chat_id, answer)
