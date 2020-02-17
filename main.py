@@ -40,9 +40,12 @@ def handle_text(message):
 @bot.message_handler(commands=['worldbox'])
 def handle_text(message):
     log(message)
-    wb = worldBox.worldBox
-    wb.worldBox_parser('https://worldbox.pl/products/obuwie-nowosc/category,2/flag,1/item,72/sort,1?', 'New', headers,
-                       bot, message.chat.id)
+    # worldBox.worldBox_parser('https://worldbox.pl/products/obuwie-nowosc/category,2/flag,1/item,72/sort,1?', 'New',
+    #                          headers,
+    #                          bot, message.chat.id)
+    worldBox.worldBox_parser('https://worldbox.pl/products/obuwie-ostatnie-sztuki/category,2/flag,8/item,72?', 'Sale',
+                             headers,
+                             bot, message.chat.id)
 
 
 bot.polling(none_stop=True, interval=0)
