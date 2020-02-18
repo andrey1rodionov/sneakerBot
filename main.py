@@ -40,13 +40,15 @@ def handle_text(message):
 @bot.message_handler(commands=['worldbox'])
 def handle_text(message):
     log(message)
-    wbNew = worldBox.worldBox('https://worldbox.pl/products/obuwie-nowosc/category,2/flag,1/item,72/sort,1?', 'New',
+    wbNew = worldBox.worldBox('https://worldbox.pl/products/obuwie-nowosc/category,2/flag,1/item,92/sort,1', 'New',
                               headers)
     wbNew.worldBox_parser()
+    wbNew.deleteInappropriatePartNumbers()
 
-    wbSale = worldBox.worldBox('https://worldbox.pl/products/obuwie-ostatnie-sztuki/category,2/flag,8/item,72?', 'Sale',
-                               headers)
+    wbSale = worldBox.worldBox('https://worldbox.pl/products/obuwie-ostatnie-sztuki/category,2/flag,8/item,92/sort,1?',
+                               'Sale', headers)
     wbSale.worldBox_parser()
+    wbSale.deleteInappropriatePartNumbers()
 
 
 bot.polling(none_stop=True, interval=0)

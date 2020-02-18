@@ -17,7 +17,7 @@ class worldBox:
         self.connection = connection
         self.cursor = self.connection.cursor()
 
-    def inappropriatePartNumbers(self, all_id):
+    def findInappropriatePartNumbers(self, all_id):
         list_for_id_database = []
 
         if self.category == 'New':
@@ -29,7 +29,7 @@ class worldBox:
                     for item in items:
                         list_for_id_database.append(item)
             except (Exception, psycopg2.Error) as error:
-                print('Error : ', error)
+                print('Error:', error)
         elif self.category == 'Sale':
             try:
                 self.cursor.execute("SELECT id_product FROM worldBoxSale")
@@ -39,11 +39,9 @@ class worldBox:
                     for item in items:
                         list_for_id_database.append(item)
             except (Exception, psycopg2.Error) as error:
-                print('Error: ', error)
+                print('Error:', error)
         else:
             print('Not found')
-
-        self.cursor.close()
 
         return list(set(list_for_id_database) - set(all_id))
 
@@ -66,7 +64,7 @@ class worldBox:
                 for link_of_product in product:
                     href = link_of_product.get('href')
 
-                price = div.find('span', attrs={'class': 'price-tag'}).text
+                price = div.find('span', attrs={'class': 'price-tag'}).find_next().text
                 title = div.find('p').text
 
                 product_request = session.get(href, headers=self.headers)
@@ -92,7 +90,7 @@ class worldBox:
                             f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
                         print(f'{id_product} has been added')
                     except (Exception, psycopg2.Error) as error:
-                        print('Error: ', error)
+                        print('Error:', error)
                 elif self.category == 'Sale':
                     try:
                         self.cursor.execute(
@@ -101,17 +99,41 @@ class worldBox:
                             f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
                         print(f'{id_product} has been added')
                     except (Exception, psycopg2.Error) as error:
-                        print('Error: ', error)
+                        print('Error:', error)
                 else:
                     print('Not found')
-
-        print(self.inappropriatePartNumbers(list_for_id_site))
-        self.cursor.close()
 
         # answer = 'Worldbox \n{0} \n{1} \n{2} \nРазмеры EU: {3}\n{4}'.format(category, href, title,
         #                                                                     ', '.join(product_size),
         #                                                                     price)
         # bot.send_message(chat_id, answer)
 
+    def deleteInappropriatePartNumbers(self):
+        global list_for_id_site
+        print(self.findInappropriatePartNumbers(list_for_id_site))
+        if self.category == 'New':
+            try:
+                if self.findInappropriatePartNumbers(list_for_id_site):
+                    self.cursor.execute("DELETE FROM worldBoxNew WHERE id_product in ({0})".format(', '.join(
+                        "'{0}'".format(id_product) for id_product in
+                        self.findInappropriatePartNumbers(list_for_id_site))))
+                else:
+                    print("List is empty")
+            except (Exception, psycopg2.Error) as error:
+                print('Error:', error)
+        elif self.category == 'Sale':
+            try:
+                if self.findInappropriatePartNumbers(list_for_id_site):
+                    self.cursor.execute("DELETE FROM worldBoxSale WHERE id_product in ({0})".format(', '.join(
+                        "'{0}'".format(id_product) for id_product in
+                        self.findInappropriatePartNumbers(list_for_id_site))))
+                else:
+                    print("List is empty")
+            except (Exception, psycopg2.Error) as error:
+                print('Error:', error)
+        else:
+            print('Not found')
+
     def __del__(self):
+        self.cursor.close()
         self.connection.close()
