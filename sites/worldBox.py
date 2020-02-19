@@ -4,13 +4,15 @@ import psycopg2
 from DB.database_connection import Database
 
 
-class WorldBox:
+class WorldBox(object):
     list_for_id_site = []
 
-    def __init__(self, link, category, headers):
+    def __init__(self, link, category, headers, bot, chat_id):
         self.link = link
         self.category = category
         self.headers = headers
+        self.bot = bot
+        self.chat_id = chat_id
 
     def find_inappropriate_part_numbers(self, all_id):
         list_for_id_database = []
@@ -127,3 +129,23 @@ class WorldBox:
                 print("List is empty")
         else:
             print('Not found')
+
+    def send_messages_to_user(self):
+        with Database() as db:
+            try:
+                db.execute("SELECT * FROM worldBoxNew WHERE date_added = '2020-02-19'")
+                worldbox_new = db.fetchall()
+            except(Exception, psycopg2.Error) as error:
+                print('Error:', error)
+            for data in worldbox_new:
+                new_sneakers = f'WorldBox - New\n{data[1]}\nРазмеры EU: {data[2]}\nЦена: {data[3]}\n{data[4]}'
+                self.bot.send_message(self.chat_id, new_sneakers)
+        with Database() as db:
+            try:
+                db.execute("SELECT * FROM worldBoxSale WHERE date_added = '2020-02-19'")
+                worldbox_sale = db.fetchall()
+            except(Exception, psycopg2.Error) as error:
+                print('Error:', error)
+            for data in worldbox_sale:
+                sale_sneakers = f'WorldBox - Sale\n{data[1]}\nРазмеры EU: {data[2]}\nЦена: {data[3]}\n{data[4]}'
+                self.bot.send_message(self.chat_id, sale_sneakers)
