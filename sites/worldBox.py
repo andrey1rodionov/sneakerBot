@@ -1,29 +1,25 @@
 import requests
 from bs4 import BeautifulSoup as bs
 import psycopg2
-
-connection = psycopg2.connect(dbname='rlkrficv', user='rlkrficv',
-                              password='iMVbx_wb98BoIJCdR26L4Ki3wOBlSwxq',
-                              host='rajje.db.elephantsql.com')
-
-list_for_id_site = []
+from DB.database_connection import Database
 
 
-class worldBox:
+class WorldBox:
+    list_for_id_site = []
+
     def __init__(self, link, category, headers):
         self.link = link
         self.category = category
         self.headers = headers
-        self.connection = connection
-        self.cursor = self.connection.cursor()
 
-    def findInappropriatePartNumbers(self, all_id):
+    def find_inappropriate_part_numbers(self, all_id):
         list_for_id_database = []
 
         if self.category == 'New':
             try:
-                self.cursor.execute("SELECT id_product FROM worldBoxNew")
-                result = self.cursor.fetchall()
+                with Database() as db:
+                    db.execute("SELECT id_product FROM worldBoxNew")
+                    result = db.fetchall()
                 all_result_from_db = [list(i) for i in result]
                 for items in all_result_from_db:
                     for item in items:
@@ -32,8 +28,9 @@ class worldBox:
                 print('Error:', error)
         elif self.category == 'Sale':
             try:
-                self.cursor.execute("SELECT id_product FROM worldBoxSale")
-                result = self.cursor.fetchall()
+                with Database() as db:
+                    db.execute("SELECT id_product FROM worldBoxSale")
+                    result = db.fetchall()
                 all_result_from_db = [list(i) for i in result]
                 for items in all_result_from_db:
                     for item in items:
@@ -45,11 +42,9 @@ class worldBox:
 
         return list(set(list_for_id_database) - set(all_id))
 
-    def worldBox_parser(self):
-        global list_for_id_site
-        list_for_id_site.clear()
+    def worldbox_parser(self):
+        self.list_for_id_site.clear()
         product_size = []
-        self.connection.autocommit = True
         session = requests.Session()
 
         product_list_request = session.get(self.link, headers=self.headers)
@@ -67,7 +62,7 @@ class worldBox:
                 price = div.find('span', attrs={'class': 'price-tag'}).find_next().text
                 title = div.find('p').text
 
-                product_request = session.get(href, headers=self.headers)
+                product_request = session.get(href, headers=self.headers, allow_redirects=False)
 
                 if product_request.status_code == 200:
                     product_soup = bs(product_request.content, 'html.parser')
@@ -79,61 +74,56 @@ class worldBox:
                         for size in size_span:
                             product_size.append(size)
 
-                list_for_id_site.append(id_product)
+                correct_id_product = id_product.replace("-", "‑")
+                self.list_for_id_site.append(correct_id_product)
                 title_without_qm = title.replace("'", "")
 
                 if self.category == 'New':
                     try:
-                        self.cursor.execute(
-                            f"INSERT INTO worldBoxNew VALUES ('{id_product}', '{title_without_qm}', "
-                            f"'{', '.join(product_size)}', '{price}', '{href}', "
-                            f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
-                        print(f'{id_product} has been added')
+                        with Database() as db:
+                            db.execute(
+                                f"INSERT INTO worldBoxNew VALUES ('{correct_id_product}', '{title_without_qm}', "
+                                f"'{', '.join(product_size)}', '{price}', '{href}', "
+                                f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
+                        print(f'{correct_id_product} has been added')
                     except (Exception, psycopg2.Error) as error:
                         print('Error:', error)
                 elif self.category == 'Sale':
                     try:
-                        self.cursor.execute(
-                            f"INSERT INTO worldBoxSale VALUES ('{id_product}', '{title_without_qm}', "
-                            f"'{', '.join(product_size)}', '{price}', '{href}', "
-                            f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
-                        print(f'{id_product} has been added')
+                        with Database() as db:
+                            db.execute(
+                                f"INSERT INTO worldBoxSale VALUES ('{correct_id_product}', '{title_without_qm}', "
+                                f"'{', '.join(product_size)}', '{price}', '{href}', "
+                                f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
+                        print(f'{correct_id_product} has been added')
                     except (Exception, psycopg2.Error) as error:
                         print('Error:', error)
                 else:
                     print('Not found')
 
-        # answer = 'Worldbox \n{0} \n{1} \n{2} \nРазмеры EU: {3}\n{4}'.format(category, href, title,
-        #                                                                     ', '.join(product_size),
-        #                                                                     price)
-        # bot.send_message(chat_id, answer)
-
-    def deleteInappropriatePartNumbers(self):
-        global list_for_id_site
-        print(self.findInappropriatePartNumbers(list_for_id_site))
+    def delete_inappropriate_part_numbers(self):
+        print(self.find_inappropriate_part_numbers(self.list_for_id_site))
         if self.category == 'New':
             try:
-                if self.findInappropriatePartNumbers(list_for_id_site):
-                    self.cursor.execute("DELETE FROM worldBoxNew WHERE id_product in ({0})".format(', '.join(
-                        "'{0}'".format(id_product) for id_product in
-                        self.findInappropriatePartNumbers(list_for_id_site))))
+                if self.find_inappropriate_part_numbers(self.list_for_id_site):
+                    with Database() as db:
+                        db.execute("DELETE FROM worldBoxNew WHERE id_product in ({0})".format(', '.join(
+                            "'{0}'".format(id_product) for id_product in
+                            self.find_inappropriate_part_numbers(self.list_for_id_site))))
                 else:
                     print("List is empty")
             except (Exception, psycopg2.Error) as error:
                 print('Error:', error)
         elif self.category == 'Sale':
             try:
-                if self.findInappropriatePartNumbers(list_for_id_site):
-                    self.cursor.execute("DELETE FROM worldBoxSale WHERE id_product in ({0})".format(', '.join(
-                        "'{0}'".format(id_product) for id_product in
-                        self.findInappropriatePartNumbers(list_for_id_site))))
+                if self.find_inappropriate_part_numbers(self.list_for_id_site):
+                    with Database() as db:
+                        db.execute("DELETE FROM worldBoxSale WHERE id_product in ({0})".format(', '.join(
+                            "'{0}'".format(id_product) for id_product in
+                            self.find_inappropriate_part_numbers(self.list_for_id_site))))
                 else:
                     print("List is empty")
             except (Exception, psycopg2.Error) as error:
                 print('Error:', error)
         else:
             print('Not found')
-
-    def __del__(self):
-        self.cursor.close()
-        self.connection.close()
