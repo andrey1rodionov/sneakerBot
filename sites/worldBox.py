@@ -16,27 +16,27 @@ class WorldBox:
         list_for_id_database = []
 
         if self.category == 'New':
-            try:
-                with Database() as db:
+            with Database() as db:
+                try:
                     db.execute("SELECT id_product FROM worldBoxNew")
                     result = db.fetchall()
-                all_result_from_db = [list(i) for i in result]
-                for items in all_result_from_db:
-                    for item in items:
-                        list_for_id_database.append(item)
-            except (Exception, psycopg2.Error) as error:
-                print('Error:', error)
+                except (Exception, psycopg2.Error) as error:
+                    print('Error:', error)
+            all_result_from_db = [list(i) for i in result]
+            for items in all_result_from_db:
+                for item in items:
+                    list_for_id_database.append(item)
         elif self.category == 'Sale':
-            try:
-                with Database() as db:
+            with Database() as db:
+                try:
                     db.execute("SELECT id_product FROM worldBoxSale")
                     result = db.fetchall()
-                all_result_from_db = [list(i) for i in result]
-                for items in all_result_from_db:
-                    for item in items:
-                        list_for_id_database.append(item)
-            except (Exception, psycopg2.Error) as error:
-                print('Error:', error)
+                except (Exception, psycopg2.Error) as error:
+                    print('Error:', error)
+            all_result_from_db = [list(i) for i in result]
+            for items in all_result_from_db:
+                for item in items:
+                    list_for_id_database.append(item)
         else:
             print('Not found')
 
@@ -79,51 +79,51 @@ class WorldBox:
                 title_without_qm = title.replace("'", "")
 
                 if self.category == 'New':
-                    try:
-                        with Database() as db:
+                    with Database() as db:
+                        try:
                             db.execute(
                                 f"INSERT INTO worldBoxNew VALUES ('{correct_id_product}', '{title_without_qm}', "
                                 f"'{', '.join(product_size)}', '{price}', '{href}', "
                                 f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
-                        print(f'{correct_id_product} has been added')
-                    except (Exception, psycopg2.Error) as error:
-                        print('Error:', error)
+                        except (Exception, psycopg2.Error) as error:
+                            print('Error:', error)
+                    print(f'{correct_id_product} has been added')
                 elif self.category == 'Sale':
-                    try:
-                        with Database() as db:
+                    with Database() as db:
+                        try:
                             db.execute(
                                 f"INSERT INTO worldBoxSale VALUES ('{correct_id_product}', '{title_without_qm}', "
                                 f"'{', '.join(product_size)}', '{price}', '{href}', "
                                 f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
-                        print(f'{correct_id_product} has been added')
-                    except (Exception, psycopg2.Error) as error:
-                        print('Error:', error)
+                        except (Exception, psycopg2.Error) as error:
+                            print('Error:', error)
+                    print(f'{correct_id_product} has been added')
                 else:
                     print('Not found')
 
     def delete_inappropriate_part_numbers(self):
         print(self.find_inappropriate_part_numbers(self.list_for_id_site))
         if self.category == 'New':
-            try:
-                if self.find_inappropriate_part_numbers(self.list_for_id_site):
-                    with Database() as db:
+            if self.find_inappropriate_part_numbers(self.list_for_id_site):
+                with Database() as db:
+                    try:
                         db.execute("DELETE FROM worldBoxNew WHERE id_product in ({0})".format(', '.join(
                             "'{0}'".format(id_product) for id_product in
                             self.find_inappropriate_part_numbers(self.list_for_id_site))))
-                else:
-                    print("List is empty")
-            except (Exception, psycopg2.Error) as error:
-                print('Error:', error)
+                    except (Exception, psycopg2.Error) as error:
+                        print('Error:', error)
+            else:
+                print("List is empty")
         elif self.category == 'Sale':
-            try:
-                if self.find_inappropriate_part_numbers(self.list_for_id_site):
-                    with Database() as db:
+            if self.find_inappropriate_part_numbers(self.list_for_id_site):
+                with Database() as db:
+                    try:
                         db.execute("DELETE FROM worldBoxSale WHERE id_product in ({0})".format(', '.join(
                             "'{0}'".format(id_product) for id_product in
                             self.find_inappropriate_part_numbers(self.list_for_id_site))))
-                else:
-                    print("List is empty")
-            except (Exception, psycopg2.Error) as error:
-                print('Error:', error)
+                    except (Exception, psycopg2.Error) as error:
+                        print('Error:', error)
+            else:
+                print("List is empty")
         else:
             print('Not found')
