@@ -1,6 +1,6 @@
 import telebot
-
-import sites.worldBox as worldBox
+import sites.worldbox as worldbox
+from chat import send_messages_to_user
 
 bot = telebot.TeleBot('1098441995:AAGqy3iBI9ODvcIaGW3isg3BrSJe60wBU1I')
 
@@ -40,16 +40,15 @@ def handle_text(message):
 @bot.message_handler(commands=['worldbox'])
 def handle_text(message):
     log(message)
-    wbNew = worldBox.WorldBox('https://worldbox.pl/products/obuwie-nowosc/category,2/flag,1/item,92/sort,1', 'New',
-                              headers, bot, message.chat.id)
-    # wbNew.worldbox_parser()
-    # wbNew.delete_inappropriate_part_numbers()
-    # wbSale = worldBox.WorldBox('https://worldbox.pl/products/obuwie-ostatnie-sztuki/category,2/flag,8/item,92/sort,1?',
-    #                            'Sale', headers, bot, message.chat.id)
-    # wbSale.worldbox_parser()
-    # wbSale.delete_inappropriate_part_numbers()
-
-    wbNew.send_messages_to_user()
+    wbNew = worldbox.WorldBox('https://worldbox.pl/products/obuwie-nowosc/category,2/flag,1/item,92/sort,1', 'New',
+                              headers)
+    wbNew.worldbox_parser()
+    wbNew.delete_inappropriate_part_numbers()
+    wbSale = worldbox.WorldBox('https://worldbox.pl/products/obuwie-ostatnie-sztuki/category,2/flag,8/item,92/sort,1?',
+                               'Sale', headers)
+    wbSale.worldbox_parser()
+    wbSale.delete_inappropriate_part_numbers()
+    send_messages_to_user(bot, message.chat.id)
 
 
 bot.polling(none_stop=True, interval=0)
