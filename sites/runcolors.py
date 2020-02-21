@@ -19,13 +19,13 @@ class RunColors:
             soup = bs(request.content, 'html.parser')
             navigation = soup.find('div', attrs={'class': 'navigation'})
             count_of_pages = navigation.find_all('a')[-2].get_text()
-            return int(count_of_pages)
+            return int(count_of_pages) + 1
         if self.category == 'Sale':
             request = session.get(self.link + '1', headers=self.headers)
             soup = bs(request.content, 'html.parser')
             navigation = soup.find('div', attrs={'class': 'navigation'})
             count_of_pages = navigation.find_all('a')[-2].get_text()
-            return int(count_of_pages)
+            return int(count_of_pages) + 1
 
     def find_inappropriate_part_numbers(self, all_id):
         list_for_id_database = []
@@ -63,6 +63,7 @@ class RunColors:
 
         for page in range(1, self.get_count_of_pages()):
             product_list_request = session.get(self.link + str(page), headers=self.headers)
+            print(page)
 
             if product_list_request.status_code == 200:
                 product_list_soup = bs(product_list_request.content, 'html.parser')

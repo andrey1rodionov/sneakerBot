@@ -55,7 +55,7 @@ def handle_text(message):
     send_messages_to_user(bot, message.chat.id)
 
     print('RN start New')
-    rnNew = runcolors.RunColors('https://runcolors.pl/sneakers/kategorie.html?page=', 'New', headers)
+    rnNew = runcolors.RunColors('https://runcolors.pl/sneakers.html?page=', 'New', headers)
     rnNew.runcolors_parser()
     rnNew.delete_inappropriate_part_numbers()
 
