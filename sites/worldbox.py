@@ -78,26 +78,27 @@ class WorldBox:
                     self.list_for_id_site.append(correct_id_product)
                     title_without_qm = title.replace("'", "")
 
-                    if self.category == 'New':
-                        try:
-                            db.execute(
-                                f"INSERT INTO worldBoxNew VALUES ('{correct_id_product}', '{title_without_qm}', "
-                                f"'{', '.join(product_size)}', '{price}', '{href}', "
-                                f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
-                        except (Exception, psycopg2.Error) as error:
-                            print('Error:', error)
-                        print(f'{correct_id_product} has been added')
-                    elif self.category == 'Sale':
-                        try:
-                            db.execute(
-                                f"INSERT INTO worldBoxSale VALUES ('{correct_id_product}', '{title_without_qm}', "
-                                f"'{', '.join(product_size)}', '{price}', '{href}', "
-                                f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
-                        except (Exception, psycopg2.Error) as error:
-                            print('Error:', error)
-                        print(f'{correct_id_product} has been added')
-                    else:
-                        print('Not found')
+                    if 'New Balance' not in title_without_qm:
+                        if self.category == 'New':
+                            try:
+                                db.execute(
+                                    f"INSERT INTO worldBoxNew VALUES ('{correct_id_product}', '{title_without_qm}', "
+                                    f"'{', '.join(product_size)}', '{price}', '{href}', "
+                                    f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
+                            except (Exception, psycopg2.Error) as error:
+                                print('Error:', error)
+                            print(f'{correct_id_product} has been added')
+                        elif self.category == 'Sale':
+                            try:
+                                db.execute(
+                                    f"INSERT INTO worldBoxSale VALUES ('{correct_id_product}', '{title_without_qm}', "
+                                    f"'{', '.join(product_size)}', '{price}', '{href}', "
+                                    f"CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING")
+                            except (Exception, psycopg2.Error) as error:
+                                print('Error:', error)
+                            print(f'{correct_id_product} has been added')
+                        else:
+                            print('Not found')
 
     def delete_inappropriate_part_numbers(self):
         print(self.find_inappropriate_part_numbers(self.list_for_id_site))
